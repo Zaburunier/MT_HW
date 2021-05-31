@@ -24,8 +24,7 @@ class MainWindow : public QMainWindow
 		~MainWindow();
 
 		QCustomPlot* GetPlotWidget();
-		HermiteBuilder* GetHermiteBuilder();
-		Ui::MainWindow* GetUI();
+		//HermiteBuilder* GetHermiteBuilder();
 		DerivativeEditor* GetDerEditor();
 
 
@@ -34,9 +33,10 @@ class MainWindow : public QMainWindow
 		Menu *menu;
 		QCustomPlot *graph;
 		HermiteBuilder *hermite;
-		DerivativeEditor *dered;
+		DerivativeEditor *derivativeEditor;
 
 		void SetupHermite();
+
 
 	protected:
 		void keyPressEvent(QKeyEvent *event);
@@ -45,9 +45,5 @@ class MainWindow : public QMainWindow
 	signals:
 		void AddPointKeyPressed();
 		void RemovePointKeyPressed();
-
-
-	public slots:
-		void ResetHermite();
 };
 #endif // MAINWINDOW_H

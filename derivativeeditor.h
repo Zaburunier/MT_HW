@@ -15,18 +15,25 @@ class DerivativeEditor : public QWidget
 		Q_OBJECT
 	public:
 		explicit DerivativeEditor(QWidget *parent = nullptr);
-		DerivativeEditor(MainWindow *mw, QSlider *slider, QLabel *valueLabel, QSpinBox* spinBox);
+		DerivativeEditor(QSlider *slider, QLabel *valueLabel, QSpinBox* spinBox);
 
 		void SetValuesListPointer(QList<HermitePoint> *pointer);
+
 
 	signals:
 		void sliverDoubleValueChanged(int index, double newDoubleValue);
 
+
 	private:
+		// Ползунок для изменения значения производной
 		QSlider *slider;
+		// Текстовое поле для отображения текущего значения производной
 		QLabel *valueLabel;
+		// Поле для выбора точки, значение которой меняем
 		QSpinBox *indexSpinBox;
+		// Указатель на список, с которым работаем
 		QList<HermitePoint> *values;
+
 
 	public slots:
 		void OnSpinBoxValueChanged(int index);

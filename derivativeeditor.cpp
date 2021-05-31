@@ -9,7 +9,7 @@ DerivativeEditor::DerivativeEditor(QWidget *parent) : QWidget(parent)
 }
 
 
-DerivativeEditor::DerivativeEditor(MainWindow *mw, QSlider *slider, QLabel *valueLabel, QSpinBox *spinBox) {
+DerivativeEditor::DerivativeEditor(QSlider *slider, QLabel *valueLabel, QSpinBox *spinBox) {
 	this->valueLabel = valueLabel;
 	this->slider = slider;
 	this->indexSpinBox = spinBox;
@@ -20,20 +20,29 @@ DerivativeEditor::DerivativeEditor(MainWindow *mw, QSlider *slider, QLabel *valu
 }
 
 
+// Чтобы знать, откуда брать значения и куда их класть
 void DerivativeEditor::SetValuesListPointer(QList<HermitePoint> *pointer) {
 	this->values = pointer;
 }
 
 
+// SpinBox отвечает за выбор текущей рабочей точки
+// При изменении точки загружаем в ползунок уже имеющееся значение из массива
 void DerivativeEditor::OnSpinBoxValueChanged(int index) {
 	qDebug() << "Spin box index changed:" << index << "; expected value = " << values->at(index).derivative;
+	// Слайдер работает только с целочисленными значениями, а нам нужно иметь возможность задавать действительные числа
+	// Поэтому у слайдера диапазон [-100; 100], но в реальных данных всё делится на 10
 	slider->setValue(static_cast<int>(values->at(index).derivative) * 10);
 	valueLabel->setText(QString::number(values->at(index).derivative));
 }
 
 
+// Slider отвечает за значение производной в выбранной рабочей точке
+// При изменении значения загружаем новое в текстовое поле и в массив
 void DerivativeEditor::OnSliderValueChanged(int newValue) {
 	qDebug() << "Slider value changed: " << newValue;
+	// Слайдер работает только с целочисленными значениями, а нам нужно иметь возможность задавать действительные числа
+	// Поэтому у слайдера диапазон [-100; 100], но в реальных данных всё делится на 10
 	double newDoubleValue = static_cast<double>(newValue) / 10;
 	valueLabel->setText(QString::number(newDoubleValue));
 	emit sliverDoubleValueChanged(indexSpinBox->value(), newDoubleValue);
@@ -43,6 +52,7 @@ void DerivativeEditor::OnSliderValueChanged(int newValue) {
 void DerivativeEditor::OnPointsResize(int newSize) {
 	qDebug() << "Points amount changed: " << newSize;
 	if (newSize == 0) {
+		// Если точек пока нет, то работать не с чем
 		this->indexSpinBox->setMinimum(-1);
 		this->indexSpinBox->setMaximum(-1);
 	} else {
@@ -54,6 +64,3 @@ void DerivativeEditor::OnPointsResize(int newSize) {
 void DerivativeEditor::OnSelectedPointChange(int index) {
 	indexSpinBox->setValue(index);
 }
-
-
-

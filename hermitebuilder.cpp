@@ -17,26 +17,24 @@ HermiteBuilder::HermiteBuilder(MainWindow *mw) : HermiteBuilder() {
 	auto qcp = mw->GetPlotWidget();
 	this->basePointsGraph = qcp->graph(1);
 	this->splineGraph = qcp->graph(0);
+
 	// Подвязываем события мыши для интерактивного вз-я
 	connect(qcp, &QCustomPlot::mousePress, this, &HermiteBuilder::OnMouseClick);
 	connect(qcp, &QCustomPlot::mouseMove, this, &HermiteBuilder::OnMouseMove);
 	connect(qcp, &QCustomPlot::mouseRelease, this, &HermiteBuilder::OnMouseRelease);
-
 	// Подвязываем события клавиатуры для регулирования числа точек
 	connect(mw, &MainWindow::AddPointKeyPressed, this, &HermiteBuilder::OnAddingNewPoint);
 	connect(mw, &MainWindow::RemovePointKeyPressed, this, &HermiteBuilder::OnRemovingPoint);
-
 	// Привязываем изменение выбранной точки графика
 	connect(qcp, &QCustomPlot::selectionChangedByUser, this, &HermiteBuilder::OnChangingSelection);
-
 	// Подвязываем редактор производных для корректной работы
 	connect(mw->GetDerEditor(), &DerivativeEditor::sliverDoubleValueChanged, this, &HermiteBuilder::OnDerivativeChanged);
 	connect(this, &HermiteBuilder::SelectedPointChanged, mw->GetDerEditor(), &DerivativeEditor::OnSelectedPointChange);
 	connect(this, &HermiteBuilder::PointsSizeChanged, mw->GetDerEditor(), &DerivativeEditor::OnPointsResize);
-
+	// Указываем, куда смотреть для работы со значениями производных
 	mw->GetDerEditor()->SetValuesListPointer(this->values);
-
 }
+
 
 void HermiteBuilder::AddPoint(QPointF *newPoint = nullptr) {
 	if (this->values->size() >= MAX_LENGTH) {
@@ -149,6 +147,7 @@ void HermiteBuilder::DrawSplines() {
 		yArray[i] = values->at(i).point.y();
 		dArray[i] = values->at(i).derivative;
 	}
+	// Построение интерполяционной кривой
 	alglib::spline1dbuildhermite(xArray, yArray, dArray, *spline);
 
 	// Отрисовка
@@ -164,6 +163,7 @@ void HermiteBuilder::DrawSplines() {
 			container->add(QCPGraphData(x, y));
 		}
 	}
+
 	this->splineGraph->setData(QSharedPointer<QCPGraphDataContainer>(container));
 	splineGraph->parentPlot()->replot();
 
@@ -185,11 +185,12 @@ void HermiteBuilder::OnMouseClick(QMouseEvent *event) {
 
 void HermiteBuilder::OnMouseMove(QMouseEvent *event) {
 	if (this->selectedPointIndex == -1 || this->isDragging == false) return;
+
 	// Новое положение точки = положение мыши - offset
 	QPointF vector;
 	basePointsGraph->pixelsToCoords(event->localPos(), vector.rx(), vector.ry());
-	double temp_d = values->at(selectedPointIndex).derivative;
 
+	double temp_d = values->at(selectedPointIndex).derivative;
 	this->values->replace(this->selectedPointIndex, HermitePoint(vector - *(this->offsetBeforeDragging), temp_d));
 	Redraw(false);
 }
@@ -199,7 +200,6 @@ void HermiteBuilder::OnMouseRelease(QMouseEvent *event) {
 	if (this->selectedPointIndex == -1) return;
 
 	this->offsetBeforeDragging = new QPointF(0.f, 0.f);
-
 	this->isDragging = false;
 	Redraw(true);
 }
@@ -238,7 +238,7 @@ void HermiteBuilder::OnChangingSelection() {
 		//qDebug() << selectedPointIndex;
 	} else {
 		auto point = basePointsGraph->data()->at(selected.dataRange(0).begin());
-		selectedPointIndex = HermitePoint::IndexOf(this->values, QPointF(point->key, point->value));
+		selectedPointIndex = HermitePoint::IndexOfPoint(this->values, QPointF(point->key, point->value));
 		//qDebug() << selected.dataRange(0).begin() << selected.dataRange(0).end() << point->key << point->value;
 	}
 
